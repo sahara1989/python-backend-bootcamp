@@ -6,12 +6,12 @@ app = Flask(__name__)
 
 db_url = os.environ.get("DATABASE_URL")
 
-# Приводим схему postgres:// к постгресовской для SQLAlchemy
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-if db_url:
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+# Если хотим точно идти через psycopg (v3):
+if db_url and db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
 else:
     basedir = os.path.abspath(os.path.dirname(__file__))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'tasks.db')
