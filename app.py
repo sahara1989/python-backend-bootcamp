@@ -80,8 +80,9 @@ def api_delete_task(task_id):
 
 # --- Запуск локально; на Render помни про 0.0.0.0 и PORT ---
 if __name__ == '__main__':
-    # Локально можно так:
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
     # На Render у тебя уже настроено:
     # import os
     # port = int(os.environ.get("PORT", 5000))
