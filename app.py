@@ -4,19 +4,19 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-# ----- Конфигурация БД -----
 db_url = os.environ.get("DATABASE_URL")
 
-# Нормализуем схему postgres:// -> postgresql://
-if db_url and db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
-
-# Гарантируем TLS, если в URL не указан
-if db_url and "sslmode=" not in db_url:
-    sep = "&" if "?" in db_url else "?"
-    db_url = f"{db_url}{sep}sslmode=require"
-
 if db_url:
+    # 1) postgres:// -> postgresql://
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    # 2) принудительно использовать psycopg (v3)
+    if db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    # 3) добавить sslmode=require, если его нет
+    if "sslmode=" not in db_url:
+        sep = "&" if "?" in db_url else "?"
+        db_url = f"{db_url}{sep}sslmode=require"
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 else:
     basedir = os.path.abspath(os.path.dirname(__file__))
@@ -24,7 +24,6 @@ else:
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# ----- Инициализация ORM (после конфигурации!) -----
 db = SQLAlchemy(app)
 
 # ----- Модель -----
