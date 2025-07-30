@@ -1,12 +1,25 @@
+import os
 from flask import Flask, render_template, request, redirect, jsonify
 from flask_sqlalchemy import SQLAlchemy
-import os
 
 app = Flask(__name__)
 
-# --- Настройка БД SQLite ---
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'tasks.db')
+# 1) Берём строку подключения из переменной окружения
+db_url = os.environ.get("DATABASE_URL")
+
+# 2) Render иногда даёт 'postgres://', а SQLAlchemy ожидает 'postgresql://'
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+# 3) Если переменная задана — используем Postgres, иначе — SQLite (локально)
+if db_url:
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+    # Если в твоём URL нет параметра sslmode=require, а Render требует SSL:
+    # app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"connect_args": {"sslmode": "require"}}
+else:
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'tasks.db')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
