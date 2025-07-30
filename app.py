@@ -1,17 +1,22 @@
 import os
 from flask import Flask, render_template, request, redirect, jsonify
-
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
+# ----- Конфигурация БД -----
 db_url = os.environ.get("DATABASE_URL")
 
-# Нормализуем схему для SQLAlchemy
+# Нормализуем схему postgres:// -> postgresql://
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
+# Гарантируем TLS, если в URL не указан
+if db_url and "sslmode=" not in db_url:
+    sep = "&" if "?" in db_url else "?"
+    db_url = f"{db_url}{sep}sslmode=require"
+
 if db_url:
-    # В URL уже есть ?sslmode=require
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 else:
     basedir = os.path.abspath(os.path.dirname(__file__))
@@ -19,6 +24,7 @@ else:
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+# ----- Инициализация ORM (после конфигурации!) -----
 db = SQLAlchemy(app)
 
 # ----- Модель -----
