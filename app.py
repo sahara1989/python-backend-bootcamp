@@ -4,32 +4,40 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
+# ----- Конфигурация БД (всегда на верхнем уровне, до db = SQLAlchemy(app)) -----
 db_url = os.environ.get("DATABASE_URL")
 
+# Render иногда даёт postgres:// — приводим к ожидаемой схеме
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-# Если хотим точно идти через psycopg (v3):
-if db_url and db_url.startswith("postgresql://"):
-    db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+# На всякий случай: если забыли sslmode в переменной окружения,
+# добавим его программно (необязательно, но повышает надёжность).
+if db_url and "sslmode=" not in db_url:
+    sep = "&" if "?" in db_url else "?"
+    db_url = f"{db_url}{sep}sslmode=require"
+
+if db_url:
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 else:
     basedir = os.path.abspath(os.path.dirname(__file__))
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'tasks.db')
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "tasks.db")
 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+# ----- Инициализация ORM (после того, как URI уже установлен) -----
 db = SQLAlchemy(app)
 
-
-# --- Модель ---
+# ----- Модель -----
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(200), nullable=False)
 
+# Создаём таблицы при старте приложения
 with app.app_context():
     db.create_all()
 
-# --- HTML-маршруты (UI) ---
+# ----- HTML-маршруты -----
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -50,23 +58,18 @@ def delete(id):
     db.session.commit()
     return redirect('/')
 
-# --- API (JSON) ---
+# ----- API -----
 @app.route('/api/tasks', methods=['GET'])
 def api_get_tasks():
     tasks = Task.query.order_by(Task.id.asc()).all()
-    # Преобразуем к простому JSON-формату
-    data = [{"id": t.id, "content": t.content} for t in tasks]
-    return jsonify(data), 200
+    return jsonify([{"id": t.id, "content": t.content} for t in tasks]), 200
 
 @app.route('/api/tasks', methods=['POST'])
 def api_add_task():
-    # Ожидаем JSON: { "task": "текст задачи" }
     if not request.is_json:
         return jsonify({"error": "Content-Type must be application/json"}), 415
-
     payload = request.get_json(silent=True) or {}
     content = (payload.get("task") or "").strip()
-
     if not content:
         return jsonify({"error": "Field 'task' is required"}), 400
     if len(content) > 200:
@@ -75,7 +78,6 @@ def api_add_task():
     task = Task(content=content)
     db.session.add(task)
     db.session.commit()
-
     return jsonify({"id": task.id, "content": task.content}), 201
 
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
@@ -83,17 +85,11 @@ def api_delete_task(task_id):
     task = Task.query.get(task_id)
     if not task:
         return jsonify({"error": "Task not found"}), 404
-
     db.session.delete(task)
     db.session.commit()
     return jsonify({"message": "Task deleted"}), 200
 
-# --- Запуск локально; на Render помни про 0.0.0.0 и PORT ---
-if __name__ == '__main__':
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
-    # На Render у тебя уже настроено:
-    # import os
-    # port = int(os.environ.get("PORT", 5000))
-    # app.run(host="0.0.0.0", port=port)
+# ----- Локальный запуск (Gunicorn на Render сам импортирует app) -----
+if __name__ == "__main__":
+    # локально можно так
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
