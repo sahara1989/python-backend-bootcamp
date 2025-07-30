@@ -14,8 +14,8 @@ if db_url and db_url.startswith("postgres://"):
 # 3) Если переменная задана — используем Postgres, иначе — SQLite (локально)
 if db_url:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-    # Если в твоём URL нет параметра sslmode=require, а Render требует SSL:
-    # app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"connect_args": {"sslmode": "require"}}
+    # требуем SSL для внешнего URL Render
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"connect_args": {"sslmode": "require"}}
 else:
     basedir = os.path.abspath(os.path.dirname(__file__))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'tasks.db')
