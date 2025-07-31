@@ -3,13 +3,25 @@ from flask import Flask, render_template, request, redirect, jsonify, url_for, f
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from flask_migrate import Migrate
+from flask_wtf import CSRFProtect  # NEW
 
 app = Flask(__name__)
 
 # --- ключ сессии ---
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
-# --- Конфигурация БД (как мы делали ранее, с psycopg и ssl) ---
+# --- (опционально) безопасные настройки cookie ---
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["REMEMBER_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["REMEMBER_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = True      # на Render (HTTPS)
+app.config["REMEMBER_COOKIE_SECURE"] = True     # на Render (HTTPS)
+
+# --- ИНИЦИАЛИЗАЦИЯ CSRF ---
+csrf = CSRFProtect(app)  # NEW  ← включает защиту для всех HTML-форм (POST/PUT/DELETE)
+
+# --- Конфигурация БД ---
 db_url = os.environ.get("DATABASE_URL")
 if db_url:
     if db_url.startswith("postgres://"):
@@ -27,33 +39,31 @@ else:
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)  # для миграций
+migrate = Migrate(app, db)
 
 # --- Flask-Login ---
 login_manager = LoginManager(app)
+login_manager.login_view = "login"
+login_manager.login_message_category = "info"
 @login_manager.unauthorized_handler
 def unauthorized_callback():
     """
-    Что делать, если пользователь не авторизован и попал на защищённый маршрут.
-    Для API (пути, начинающиеся с /api/) возвращаем JSON 401.
-    Для остальных – редирект на /login, сохраняя next.
+    Что делать, если неавторизованный пользователь попал на защищённый маршрут.
+    Для API (/api/...) отдаём JSON 401. Для HTML — редиректим на /login.
     """
-    # 1) Определяем, что это API-запрос
+    # 1) Это API-запрос, если путь начинается с /api/
     is_api = request.path.startswith("/api/")
-    
-    # 2) Дополнительно можно учитывать заголовок Accept (если клиент просит JSON)
-    wants_json = request.accept_mimetypes["application/json"] >= request.accept_mimetypes["text/html"]
-    
-    if is_api or wants_json:
-        # Опционально можно добавить WWW-Authenticate (больше для Basic/OAuth кейсов)
-        response = jsonify({"error": "Unauthorized"})
-        response.status_code = 401
-        return response
 
-    # 3) Для HTML – обычный редирект на страницу логина
+    # 2) Или клиент явно просит JSON (Accept: application/json)
+    wants_json = request.accept_mimetypes["application/json"] >= request.accept_mimetypes["text/html"]
+
+    if is_api or wants_json:
+        # Возвращаем JSON и статус 401 (Unauthorized)
+        return jsonify({"error": "Unauthorized"}), 401
+
+    # Для обычных HTML-страниц — редирект на /login, причём с сохранением next
     return redirect(url_for("login", next=request.path))
-login_manager.login_view = "login"         # куда редиректить неавторизованных
-login_manager.login_message_category = "info"
+
 
 # --- Модели ---
 class User(db.Model, UserMixin):
@@ -127,7 +137,7 @@ def login():
     return render_template("login.html")
 
 # --- Логаут ---
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 @login_required
 def logout():
     logout_user()
@@ -163,6 +173,7 @@ def delete(id):
     return redirect(url_for("index"))
 
 # --- API (если хочешь тоже закрыть логином) ---
+@csrf.exempt
 @app.route("/api/tasks", methods=["GET"])
 @login_required
 def api_get_tasks():
@@ -171,6 +182,7 @@ def api_get_tasks():
     ).scalars().all()
     return jsonify([{"id": t.id, "content": t.content} for t in tasks]), 200
 
+@csrf.exempt
 @app.route("/api/tasks", methods=["POST"])
 @login_required
 def api_add_task():
@@ -188,6 +200,7 @@ def api_add_task():
     db.session.commit()
     return jsonify({"id": task.id, "content": task.content}), 201
 
+@csrf.exempt
 @app.route("/api/tasks/<int:task_id>", methods=["DELETE"])
 @login_required
 def api_delete_task(task_id):
