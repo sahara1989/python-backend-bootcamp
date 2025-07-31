@@ -1,31 +1,47 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>TODO с базой данных</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>TODO (с пользователями)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 <div class="container mt-5">
-    <h1 class="mb-4 text-center">TODO с SQLite</h1>
 
-    <form method="POST" action="/" class="d-flex mb-4">
-        <input type="text" name="task" placeholder="Введите задачу" class="form-control me-2" required>
-        <button type="submit" class="btn btn-success">Добавить</button>
-    </form>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="m-0">Мой TODO</h1>
+    <div>
+      <span class="me-3">Привет, {{ current_user.username }}!</span>
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('logout') }}">Выйти</a>
+    </div>
+  </div>
 
-    <ul class="list-group">
-        {% for task in tasks %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                {{ task.id }}. {{ task.content }}
-                <form method="POST" action="/delete/{{ task.id }}">
-                    <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
-                </form>
-            </li>
-        {% else %}
-            <li class="list-group-item text-muted">Пока задач нет</li>
-        {% endfor %}
-    </ul>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} mb-2">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('index') }}" class="d-flex mb-4">
+    <input type="text" name="task" placeholder="Введите задачу" class="form-control me-2" required>
+    <button type="submit" class="btn btn-success">Добавить</button>
+  </form>
+
+  <ul class="list-group">
+    {% for task in tasks %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ task.id }}. {{ task.content }}
+        <form method="POST" action="{{ url_for('delete', id=task.id) }}">
+          <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+        </form>
+      </li>
+    {% else %}
+      <li class="list-group-item text-muted">Пока задач нет</li>
+    {% endfor %}
+  </ul>
 </div>
 </body>
 </html>
