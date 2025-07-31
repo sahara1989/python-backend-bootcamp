@@ -26,17 +26,26 @@
   {% endwith %}
 
   <form method="POST" action="{{ url_for('index') }}" class="d-flex mb-4">
-    <input type="text" name="task" placeholder="Введите задачу" class="form-control me-2" required>
-    <button type="submit" class="btn btn-success">Добавить</button>
-  </form>
+  {{ csrf_token() }}
+  <input type="text" name="task" ...>
+  <button type="submit" class="btn btn-success">Добавить</button>
+</form>
+
 
   <ul class="list-group">
     {% for task in tasks %}
       <li class="list-group-item d-flex justify-content-between align-items-center">
         {{ task.id }}. {{ task.content }}
         <form method="POST" action="{{ url_for('delete', id=task.id) }}">
-          <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
-        </form>
+  {{ csrf_token() }}
+  <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+</form>
+
+<form method="POST" action="{{ url_for('logout') }}" class="d-inline">
+  {{ csrf_token() }}
+  <button class="btn btn-outline-secondary btn-sm" type="submit">Выйти</button>
+</form>
+
       </li>
     {% else %}
       <li class="list-group-item text-muted">Пока задач нет</li>

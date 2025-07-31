@@ -19,6 +19,7 @@
   {% endwith %}
 
   <form method="POST" action="{{ url_for('register') }}" class="card card-body">
+    {{ csrf_token() }}
     <div class="mb-3">
       <label class="form-label">Логин</label>
       <input type="text" name="username" class="form-control" required autofocus>
