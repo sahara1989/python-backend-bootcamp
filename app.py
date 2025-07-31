@@ -31,6 +31,27 @@ migrate = Migrate(app, db)  # для миграций
 
 # --- Flask-Login ---
 login_manager = LoginManager(app)
+@login_manager.unauthorized_handler
+def unauthorized_callback():
+    """
+    Что делать, если пользователь не авторизован и попал на защищённый маршрут.
+    Для API (пути, начинающиеся с /api/) возвращаем JSON 401.
+    Для остальных – редирект на /login, сохраняя next.
+    """
+    # 1) Определяем, что это API-запрос
+    is_api = request.path.startswith("/api/")
+    
+    # 2) Дополнительно можно учитывать заголовок Accept (если клиент просит JSON)
+    wants_json = request.accept_mimetypes["application/json"] >= request.accept_mimetypes["text/html"]
+    
+    if is_api or wants_json:
+        # Опционально можно добавить WWW-Authenticate (больше для Basic/OAuth кейсов)
+        response = jsonify({"error": "Unauthorized"})
+        response.status_code = 401
+        return response
+
+    # 3) Для HTML – обычный редирект на страницу логина
+    return redirect(url_for("login", next=request.path))
 login_manager.login_view = "login"         # куда редиректить неавторизованных
 login_manager.login_message_category = "info"
 
