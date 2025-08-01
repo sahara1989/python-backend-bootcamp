@@ -12,9 +12,11 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="m-0">Мой TODO</h1>
     <div>
-      <span class="me-3">Привет, {{ current_user.username }}!</span>
-      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('logout') }}">Выйти</a>
-    </div>
+    <span class="me-3">Привет, {{ current_user.username }}!</span>
+    <form method="POST" action="{{ url_for('logout') }}" class="d-inline">
+    {{ csrf_token() }}
+    <button class="btn btn-outline-secondary btn-sm" type="submit">Выйти</button>
+  </form>
   </div>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -29,7 +31,7 @@
   {{ csrf_token() }}
   <input type="text" name="task" ...>
   <button type="submit" class="btn btn-success">Добавить</button>
-</form>
+  </form>
 
 
   <ul class="list-group">
@@ -39,14 +41,8 @@
         <form method="POST" action="{{ url_for('delete', id=task.id) }}">
   {{ csrf_token() }}
   <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
-</form>
-
-<form method="POST" action="{{ url_for('logout') }}" class="d-inline">
-  {{ csrf_token() }}
-  <button class="btn btn-outline-secondary btn-sm" type="submit">Выйти</button>
-</form>
-
-      </li>
+  </form>
+ </li>
     {% else %}
       <li class="list-group-item text-muted">Пока задач нет</li>
     {% endfor %}
