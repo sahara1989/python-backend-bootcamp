@@ -14,7 +14,7 @@
     <div>
     <span class="me-3">Привет, {{ current_user.username }}!</span>
     <form method="POST" action="{{ url_for('logout') }}" class="d-inline">
-    {{ csrf_token() }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button class="btn btn-outline-secondary btn-sm" type="submit">Выйти</button>
   </form>
   </div>
@@ -28,7 +28,7 @@
   {% endwith %}
 
   <form method="POST" action="{{ url_for('index') }}" class="d-flex mb-4">
-  {{ csrf_token() }}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="text" name="task" class="form-control me-2" placeholder="Новая задача" required>
   <button type="submit" class="btn btn-success">Добавить</button>
   </form>
@@ -40,7 +40,7 @@
         {{ task.id }}. {{ task.content }}
 
       <form method="POST" action="{{ url_for('delete', id=task.id) }}">
-  {{ csrf_token() }}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
   </form>
  </li>
