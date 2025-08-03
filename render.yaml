@@ -1,7 +1,8 @@
 services:
   - type: web
-    name: flask-todo
-    env: python
-    startCommand: "gunicorn -w 2 -b 0.0.0.0:$PORT app:app"
+    name: your-app-name
+    runtime: python
+    buildCommand: ""
+    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT 'app:create_app()'
     plan: free
     autoDeploy: true
