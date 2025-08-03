@@ -1,7 +1,8 @@
-flask
-flask_sqlalchemy
-flask_login
-flask_migrate
-gunicorn
-psycopg[binary]
-flask-wtf
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
+WTForms==3.1.2
+psycopg2-binary==2.9.9
+gunicorn==22.0.0
