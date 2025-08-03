@@ -2,8 +2,6 @@ services:
   - type: web
     name: flask-task-app
     runtime: python
-    buildCommand: |
-      echo "python-3.11.9" > runtime.txt
     startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT 'app:create_app()'
     plan: free
     autoDeploy: true
