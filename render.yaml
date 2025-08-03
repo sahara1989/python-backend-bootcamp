@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: your-app-name
+    name: flask-task-app
     runtime: python
     buildCommand: ""
     startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT 'app:create_app()'
