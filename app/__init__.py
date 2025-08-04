@@ -53,6 +53,7 @@ def create_app():
 
     login_manager.login_view = "main.login"
 
+
     # --- Подключение маршрутов ---
     from .routes import main_bp
     from .api import api_bp
