@@ -51,7 +51,7 @@ def create_app():
     def load_user(user_id):
         return db.session.get(User, int(user_id))
 
-    login_manager.login_view = "login"
+    login_manager.login_view = "main.login"
 
     # --- Подключение маршрутов ---
     from .routes import main_bp
