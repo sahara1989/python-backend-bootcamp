@@ -4,6 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from .models import db, User, Task
 from .forms import RegisterForm, LoginForm  # подключаем формы
+from .forms import TaskForm
+
 
 main_bp = Blueprint("main", __name__)
 
@@ -67,19 +69,20 @@ def logout():
 @main_bp.route("/", methods=["GET", "POST"])
 @login_required
 def index():
-    if request.method == "POST":
-        task_content = request.form.get("task", "").strip()
-        if task_content:
-            new_task = Task(content=task_content, user_id=current_user.id)
-            db.session.add(new_task)
-            db.session.commit()
+    form = TaskForm()
+
+    if form.validate_on_submit():
+        task_content = form.task.data.strip()
+        new_task = Task(content=task_content, user_id=current_user.id)
+        db.session.add(new_task)
+        db.session.commit()
         return redirect(url_for("main.index"))
 
     tasks = db.session.execute(
         db.select(Task).where(Task.user_id == current_user.id).order_by(Task.id.asc())
     ).scalars().all()
 
-    return render_template("index.html", tasks=tasks)
+    return render_template("index.html", tasks=tasks, form=form)
 
 # === Удаление задачи ===
 @main_bp.route("/delete/<int:id>", methods=["POST"])

@@ -13,9 +13,31 @@ def create_app():
 
     # --- Ключ и безопасность ---
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///tasks.db")
+
+    # --- Настройка строки подключения к базе данных ---
+    db_url = os.environ.get("DATABASE_URL")
+
+    if db_url:
+        # Заменим старую схему (postgres://) на новую с psycopg
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+        elif db_url.startswith("postgresql://"):
+            db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+
+        # Добавим sslmode=require, если его нет
+        if "sslmode=" not in db_url:
+            sep = "&" if "?" in db_url else "?"
+            db_url = f"{db_url}{sep}sslmode=require"
+
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+    else:
+        # Fallback на SQLite (локальная разработка)
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "tasks.db")
+
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+    # --- Безопасность cookie ---
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["REMEMBER_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"

@@ -27,11 +27,15 @@
     {% endif %}
   {% endwith %}
 
-  <form method="POST" action="{{ url_for('index') }}" class="d-flex mb-4">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input type="text" name="task" class="form-control me-2" placeholder="Новая задача" required>
-  <button type="submit" class="btn btn-success">Добавить</button>
-  </form>
+  <form method="POST" class="d-flex mb-4">
+  {{ form.hidden_tag() }}
+  {{ form.task(class="form-control me-2", placeholder="Новая задача") }}
+  {{ form.submit(class="btn btn-success") }}
+</form>
+
+{% for error in form.task.errors %}
+  <div class="text-danger small">{{ error }}</div>
+{% endfor %}
 
 
   <ul class="list-group">
