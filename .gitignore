@@ -1,1 +1,32 @@
-venv/ 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# виртуальное окружение
+.venv/
+venv/
+
+# SQLite база данных (локально)
+*.sqlite3
+*.db
+
+# миграции, скомпилированные файлы
+instance/
+*.log
+
+# dotenv и секретные конфиги
+.env
+.env.*
+
+# PyCharm / VSCode
+.idea/
+.vscode/
+
+# системные
+.DS_Store
+
+# Render build artifacts
+build/
+tmp/
