@@ -18,20 +18,15 @@ def create_app():
     db_url = os.environ.get("DATABASE_URL")
 
     if db_url:
-        # Заменим старую схему (postgres://) на новую с psycopg
         if db_url.startswith("postgres://"):
             db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
         elif db_url.startswith("postgresql://"):
             db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
-
-        # Добавим sslmode=require, если его нет
         if "sslmode=" not in db_url:
             sep = "&" if "?" in db_url else "?"
             db_url = f"{db_url}{sep}sslmode=require"
-
         app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     else:
-        # Fallback на SQLite (локальная разработка)
         basedir = os.path.abspath(os.path.dirname(__file__))
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "tasks.db")
 
@@ -50,11 +45,11 @@ def create_app():
     csrf.init_app(app)
     login_manager.init_app(app)
 
-    from .models import User, db
+    from .models import User  # ✅ только User, без db
 
     @login_manager.user_loader
     def load_user(user_id):
-      return db.session.get(User, int(user_id))
+        return db.session.get(User, int(user_id))
 
     login_manager.login_view = "login"
 
