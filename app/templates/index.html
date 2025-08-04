@@ -7,9 +7,13 @@
 <body>
   <h1>Привет, {{ current_user.username }}!</h1>
 
-  <form action="{{ url_for('main.logout') }}" method="post">
-    <button type="submit">Выйти</button>
-  </form>
+<form action="{{ url_for('main.logout') }}" method="post">
+  {{ form.hidden_tag() }}  <!-- если используешь FlaskForm -->
+  <!-- ИЛИ просто -->
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit">Выйти</button>
+</form>
+
 
   <h2>Добавить задачу</h2>
   <form action="{{ url_for('main.index') }}" method="post">
@@ -24,9 +28,11 @@
     {% for task in tasks %}
       <li>
         {{ task.content }}
-        <form action="{{ url_for('main.delete', id=task.id) }}" method="post" style="display:inline;">
-          <button type="submit">Удалить</button>
-        </form>
+  <form action="{{ url_for('main.delete', id=task.id) }}" method="post" style="display:inline;">
+   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+   <button type="submit">Удалить</button>
+  </form>
+
       </li>
     {% else %}
       <li>Задач пока нет</li>
