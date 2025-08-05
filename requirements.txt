@@ -5,7 +5,7 @@ Flask-Login==0.6.3
 Flask-WTF==1.2.1
 WTForms==3.1.2
 python-dotenv
-psycopg
+psycopg2-binary
 gunicorn==22.0.0
 
 
