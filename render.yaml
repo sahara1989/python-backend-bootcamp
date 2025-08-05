@@ -1,7 +1,7 @@
 services:
   - type: web
-    name: flask-task-app
-    runtime: python
-    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT 'app:create_app()'
-    plan: free
+    name: python-backend-bootcamp-1
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn wsgi:app
     autoDeploy: true
