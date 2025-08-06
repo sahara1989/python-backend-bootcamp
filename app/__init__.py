@@ -39,6 +39,7 @@ def create_app():
         client_id=os.environ.get("GITHUB_OAUTH_CLIENT_ID"),
         client_secret=os.environ.get("GITHUB_OAUTH_CLIENT_SECRET"),
         scope="read:user",
+        redirect_to="main.github_login"
     )
     app.register_blueprint(github_bp, url_prefix="/github")
 
