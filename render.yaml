@@ -4,6 +4,14 @@ services:
     env: python
     buildCommand: |
       pip install -r requirements.txt
-      flask db upgrade
+      flask --app wsgi db upgrade
     startCommand: gunicorn wsgi:app
-    autoDeploy: true
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false  # Render подставит автоматически
+      - key: GITHUB_OAUTH_CLIENT_ID
+        value: <твоя ID>
+      - key: GITHUB_OAUTH_CLIENT_SECRET
+        value: <твой SECRET>
