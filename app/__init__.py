@@ -41,7 +41,7 @@ def create_app():
         scope="read:user",
         redirect_to="main.github_login"
     )
-    app.register_blueprint(github_bp, url_prefix="/github")
+    app.register_blueprint(github_bp)
 
     login_manager.login_view = "main.login"
 
