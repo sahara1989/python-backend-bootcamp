@@ -5,6 +5,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from .models import db, User, Task
 from .forms import RegisterForm, LoginForm  # подключаем формы
 from .forms import TaskForm
+from flask_dance.contrib.github import github
+from flask import current_app as app
+
 
 
 main_bp = Blueprint("main", __name__)
@@ -93,3 +96,37 @@ def delete(id):
         db.session.delete(task)
         db.session.commit()
     return redirect(url_for("main.index"))
+
+@main_bp.route("/login/github")
+def github_login():
+    # если пользователь ещё не авторизовался через GitHub — перенаправим его
+    if not github.authorized:
+        return redirect(url_for("github.login"))
+
+    # пробуем получить информацию о пользователе от GitHub
+    resp = github.get("/user")
+    if not resp.ok:
+        flash("Ошибка при получении данных от GitHub", "danger")
+        return redirect(url_for("main.login"))
+
+    # парсим ответ GitHub
+    github_info = resp.json()
+    github_id = str(github_info["id"])
+    username = github_info.get("login", f"user_{github_id}")
+
+    # проверяем, есть ли такой пользователь в нашей базе
+    user = db.session.execute(
+        db.select(User).filter_by(github_id=github_id)
+    ).scalar_one_or_none()
+
+    # если нет — регистрируем нового
+    if not user:
+        user = User(username=username, github_id=github_id)
+        db.session.add(user)
+        db.session.commit()
+
+    # логиним пользователя
+    login_user(user)
+    flash("Успешный вход через GitHub", "success")
+    return redirect(url_for("main.index"))
+

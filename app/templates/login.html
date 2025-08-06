@@ -18,6 +18,7 @@
     </p>
     <p>{{ form.submit() }}</p>
   </form>
+  <p>Или войти через <a href="{{ url_for('main.github_login') }}">GitHub</a></p>
   <p>Нет аккаунта? <a href="{{ url_for('main.register') }}">Регистрация</a></p>
 </body>
 </html>

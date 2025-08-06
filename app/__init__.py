@@ -1,10 +1,12 @@
 import os
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf import CSRFProtect
 
 from .config import DevelopmentConfig, ProductionConfig
+from flask_dance.contrib.github import make_github_blueprint, github
+
 
 db = SQLAlchemy()
 csrf = CSRFProtect()
@@ -27,6 +29,16 @@ def create_app():
     db.init_app(app)
     csrf.init_app(app)
     login_manager.init_app(app)
+    
+        # --- GitHub OAuth ---
+    from flask_dance.contrib.github import make_github_blueprint
+    github_bp = make_github_blueprint(
+        client_id=os.environ.get("GITHUB_OAUTH_CLIENT_ID"),
+        client_secret=os.environ.get("GITHUB_OAUTH_CLIENT_SECRET"),
+        scope="read:user",
+    )
+    app.register_blueprint(github_bp, url_prefix="/github")
+
     login_manager.login_view = "main.login"
 
     # важно, чтобы БД знала о моделях
