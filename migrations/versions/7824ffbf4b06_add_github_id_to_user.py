@@ -30,7 +30,7 @@ def upgrade():
 
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.add_column(sa.Column('github_id', sa.String(length=100), nullable=True))
-        batch_op.create_unique_constraint(None, ['github_id'])
+        batch_op.create_unique_constraint("uq_user_github_id", ['github_id'])
 
     # ### end Alembic commands ###
 
