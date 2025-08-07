@@ -6,7 +6,7 @@ from flask_wtf import CSRFProtect
 from flask_migrate import Migrate
 
 from .config import DevelopmentConfig, ProductionConfig
-from flask_dance.contrib.github import make_github_blueprint, github
+
 
 
 db = SQLAlchemy()
@@ -32,7 +32,7 @@ def create_app():
     migrate.init_app(app, db)
     csrf.init_app(app)
     login_manager.init_app(app)
-    
+
     login_manager.login_view = "main.login"
 
     # важно, чтобы БД знала о моделях
