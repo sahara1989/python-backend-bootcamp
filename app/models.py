@@ -6,7 +6,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
-    github_id = db.Column(db.String(100), unique=True)
+    github_id = db.Column(db.String(255), unique=True, nullable=True)
     tasks = db.relationship("Task", backref="user", lazy=True)
 
 class Task(db.Model):

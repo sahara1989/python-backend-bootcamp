@@ -32,21 +32,11 @@ def create_app():
     migrate.init_app(app, db)
     csrf.init_app(app)
     login_manager.init_app(app)
-
-        # --- GitHub OAuth ---
-    from flask_dance.contrib.github import make_github_blueprint
-    github_bp = make_github_blueprint(
-        client_id=os.environ.get("GITHUB_OAUTH_CLIENT_ID"),
-        client_secret=os.environ.get("GITHUB_OAUTH_CLIENT_SECRET"),
-        scope="read:user",
-        redirect_to="main.github_login"
-    )
-    app.register_blueprint(github_bp)
-
+    
     login_manager.login_view = "main.login"
 
     # важно, чтобы БД знала о моделях
-    from .models import User  
+    from .models import User, Task 
     @login_manager.user_loader
     def load_user(user_id):
         return db.session.get(User, int(user_id))
